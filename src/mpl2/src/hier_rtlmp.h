@@ -543,6 +543,8 @@ struct SnapParameters
 };
 
 /// The process of snapping macros to grid
+/// In hier_rtlmp.cpp, it processess macro instances retrieved
+/// from a HardMacro object
 class Snapper
 {
  public:
@@ -569,8 +571,9 @@ class Snapper
  private:
   ///
   /// Check the macro instance's master, then MTerms, then MPins,
-  /// then boxes (dbBox from getGeometry), then tech layer, then
-  /// layer direction. Accordingly, it will then call either 
+  /// then boxes (dbBox via  getGeometry, which was retrieved from
+  /// the pin's dbMaster), then tech layer, then layer direction.
+  /// Aaccordingly, it will then call either 
   /// computeSnapParameters(layer, box, false) or
   /// computeSnapParameters(layer, box, true) depending on the
   /// tech layer being horizontal. 
