@@ -5608,7 +5608,7 @@ class dbMaster : public dbObject
   void getPlacementBoundary(Rect& r);
 
   ///
-  /// Apply the suppiled transform to the master obstructions and pin
+  /// Apply the supplied transform to the master obstructions and pin
   /// geometries.
   ///
   void transform(dbTransform& t);
