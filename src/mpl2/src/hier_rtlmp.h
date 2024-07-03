@@ -564,7 +564,7 @@ class Snapper
   /// cetera.
   /// The new origin from computeSnapOrigin is then inputed to setOrigin.
   ///
-  void snapMacro();
+  void snapMacro(utl::Logger* logger);
 
  private:
   ///
@@ -580,7 +580,7 @@ class Snapper
   /// to the manufacturing grid (getManufacturingGrid). 
   /// The result, an odb::Point, is returned.
   ///
-  odb::Point computeSnapOrigin();
+  odb::Point computeSnapOrigin(utl::Logger* logger);
 
   ///
   /// This will check instance block, track grid, coordinate grid,
@@ -588,7 +588,8 @@ class Snapper
   /// computed or retrieved: offset, pitch, pin width, lower left to
   /// first pin. They are returned in the form of SnapParameters.
   ///
-  SnapParameters computeSnapParameters(odb::dbTechLayer* layer,
+  SnapParameters computeSnapParameters(utl::Logger* logger,
+                                       odb::dbTechLayer* layer,
                                        odb::dbBox* box,
                                        bool vertical_layer);
   ///

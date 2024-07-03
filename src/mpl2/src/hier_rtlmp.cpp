@@ -6207,7 +6207,7 @@ void HierRTLMP::commitMacroPlacementToDb()
     }
 
     snapper.setMacro(inst);
-    snapper.snapMacro();
+    snapper.snapMacro(logger_);
 
     inst->setPlacementStatus(odb::dbPlacementStatus::LOCKED);
   }
@@ -6596,17 +6596,19 @@ Snapper::Snapper(odb::dbInst* inst) : inst_(inst)
 {
 }
 
-void Snapper::snapMacro()
+void Snapper::snapMacro(utl::Logger* logger)
 {
-  const odb::Point snap_origin = computeSnapOrigin();
+  const odb::Point snap_origin = computeSnapOrigin(logger);
   inst_->setOrigin(snap_origin.x(), snap_origin.y());
 }
 
-odb::Point Snapper::computeSnapOrigin()
+odb::Point Snapper::computeSnapOrigin(utl::Logger* logger)
 {
+  logger->report("6607");
   SnapParameters x, y;
 
   std::set<odb::dbTechLayer*> snap_layers;
+  logger->report("6611");
 
   odb::dbMaster* master = inst_->getMaster();
   for (odb::dbMTerm* mterm : master->getMTerms()) {
@@ -6614,6 +6616,7 @@ odb::Point Snapper::computeSnapOrigin()
       continue;
     }
 
+    logger->report("6619");
     for (odb::dbMPin* mpin : mterm->getMPins()) {
       for (odb::dbBox* box : mpin->getGeometry()) {
         odb::dbTechLayer* layer = box->getTechLayer();
@@ -6624,15 +6627,18 @@ odb::Point Snapper::computeSnapOrigin()
 
         snap_layers.insert(layer);
 
+        logger->report("6630");
         if (layer->getDirection() == odb::dbTechLayerDir::HORIZONTAL) {
-          y = computeSnapParameters(layer, box, false);
+          logger->report("6632");
+          y = computeSnapParameters(logger, layer, box, false);
         } else {
-          x = computeSnapParameters(layer, box, true);
+          logger->report("6635");
+          x = computeSnapParameters(logger, layer, box, true);
         }
       }
     }
   }
-
+  logger->report("6641");
   // The distance between the pins and the lower-left corner of the master of
   // a macro instance may not be a multiple of the track-grid, in these cases,
   // we need to compensate a small offset.
@@ -6688,30 +6694,40 @@ odb::Point Snapper::computeSnapOrigin()
   return snap_origin;
 }
 
-SnapParameters Snapper::computeSnapParameters(odb::dbTechLayer* layer,
+SnapParameters Snapper::computeSnapParameters(utl::Logger* logger,
+                                              odb::dbTechLayer* layer,
                                               odb::dbBox* box,
                                               const bool vertical_layer)
 {
+  logger->report("6702");
   SnapParameters params;
 
   odb::dbBlock* block = inst_->getBlock();
+  logger->report("6706");
   odb::dbTrackGrid* track_grid = block->findTrackGrid(layer);
+  logger->report("6708");
 
   if (track_grid) {
+    logger->report("6711");
     std::vector<int> coordinate_grid;
     getTrackGrid(track_grid, coordinate_grid, vertical_layer);
-
-    params.offset = coordinate_grid[0];
+    logger->report("6714");
+    logger->report("{} {}", coordinate_grid[0], coordinate_grid[1]);
+    params.offset = coordinate_grid[0];logger->report("6716");
     params.pitch = coordinate_grid[1] - coordinate_grid[0];
+    logger->report("6718");
   } else {
+    logger->report("6720");
     params.pitch = getPitch(layer, vertical_layer);
+    logger->report("6722");
     params.offset = getOffset(layer, vertical_layer);
   }
-
+  logger->report("6725");
   params.pin_width = getPinWidth(box, vertical_layer);
+  logger->report("6727");
   params.lower_left_to_first_pin
       = getPinToLowerLeftDistance(box, vertical_layer);
-
+  logger->report("6730");
   return params;
 }
 

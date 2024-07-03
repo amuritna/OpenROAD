@@ -254,7 +254,7 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
     inst1->getDb()->getTech()->getManufacturingGrid()
   );
 
-  snapper.snapMacro(); // expected to change inst1->getOrigin
+  snapper.snapMacro(logger); // expected to change inst1->getOrigin
 
   logger->report(
     "end (x, y) of inst1: ({}, {})",

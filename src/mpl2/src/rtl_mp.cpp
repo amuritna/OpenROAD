@@ -155,7 +155,7 @@ void MacroPlacer2::placeMacro(odb::dbInst* inst,
 
   if (!orientation.isRightAngleRotation()) {
     Snapper snapper(inst);
-    snapper.snapMacro();
+    snapper.snapMacro(logger_);
   } else {
     logger_->warn(
         MPL,
