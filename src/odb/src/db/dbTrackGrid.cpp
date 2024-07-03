@@ -137,12 +137,23 @@ void dbTrackGrid::getGridX(std::vector<int>& x_grid)
 
   uint i;
 
+  getImpl()->getLogger()->report(
+    "gridx _x_origin.size(): {}",
+    grid->_x_origin.size()
+  );
+  
   for (i = 0; i < grid->_x_origin.size(); ++i) {
     int j;
 
     int x = grid->_x_origin[i];
     int count = grid->_x_count[i];
     int step = grid->_x_step[i];
+    getImpl()->getLogger()->report(
+      "gridx -> x {}, count {}, step {}",
+      x,
+      count,
+      step
+    );
 
     for (j = 0; j < count; ++j) {
       x_grid.push_back(x);
@@ -152,6 +163,7 @@ void dbTrackGrid::getGridX(std::vector<int>& x_grid)
 
   // empty grid
   if (x_grid.begin() == x_grid.end()) {
+    getImpl()->getLogger()->report("empty grid :(");
     return;
   }
 
