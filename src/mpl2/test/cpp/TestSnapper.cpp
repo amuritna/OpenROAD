@@ -158,11 +158,17 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
       box->getTechLayer()->getDirection() != odb::dbTechLayerDir::HORIZONTAL
       // in hier_rtlmp.cpp, direction is inputed "false" if horizontal
     );
-
+    odb::dbTrackGrid* track_grid = inst1->getBlock()->findTrackGrid(box->getTechLayer());
     logger->report(
       "track grid found: {}",
-      inst1->getBlock()->findTrackGrid(box->getTechLayer()) != 0
+      track_grid != 0
     );
+    logger->report("attempt to get gridx");
+    std::vector<int> coordinate_grid;
+    track_grid->getGridX(coordinate_grid);
+    logger->report("attempt to read grid response");
+    logger->report("{} {} {}", coordinate_grid[0], coordinate_grid[1], coordinate_grid[2]);
+
     odb::dbOrientType orientation = inst1->getOrient();
     logger->report(
       "is orientation of instance\nR0? {}\nR90? {}\nR180? {}\nR270? {}\nMY? {}\nMYR90? {}\nMX? {}\nMXR90? {}",
@@ -209,6 +215,7 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
     );
   }
 
+  
 
   Snapper snapper;
   snapper.setMacro(inst1);
