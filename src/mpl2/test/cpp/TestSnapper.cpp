@@ -133,6 +133,8 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
   odb::dbTrackGrid* track2 = odb::dbTrackGrid::create(block_, layer2_);
   track1->addGridPatternX(0, 20, 10);
   track1->addGridPatternY(0, 20, 10);
+  track2->addGridPatternX(0, 20, 10);
+  track2->addGridPatternY(0, 20, 10);
 
   odb::dbDatabase::beginEco(block_);
   odb::dbInst* inst1 = odb::dbInst::create(block_, master_, "cells_1");
