@@ -100,6 +100,7 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
   odb::dbChip* chip_ = odb::dbChip::create(db_);
   odb::dbTechLayer* layer1_ = odb::dbTechLayer::create(tech_, "layer1", odb::dbTechLayerType::CUT);
   odb::dbTechLayer* layer2_ = odb::dbTechLayer::create(tech_, "layer2", odb::dbTechLayerType::CUT);
+  logger->report("layer1 min width {}", layer1_->getMinWidth());
 
   // During the construction of a new HardMacro object
   // with input dbInst* inst, the following values are retrieved:
@@ -126,9 +127,12 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
 
   odb::dbBlock* block_ = odb::dbBlock::create(chip_, "simple_block");
   block_->setDieArea(odb::Rect(0, 0, 1000, 1000));
+  odb::dbGCellGrid* grid_ = odb::dbGCellGrid::create(block_);
 
   odb::dbTrackGrid* track1 = odb::dbTrackGrid::create(block_, layer1_);
   odb::dbTrackGrid* track2 = odb::dbTrackGrid::create(block_, layer2_);
+  track1->addGridPatternX(0, 20, 10);
+  track1->addGridPatternY(0, 20, 10);
 
   odb::dbDatabase::beginEco(block_);
   odb::dbInst* inst1 = odb::dbInst::create(block_, master_, "cells_1");
@@ -163,6 +167,10 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
       "track grid found: {}",
       track_grid != 0
     );
+    logger->report("attempt to get grid pattern");
+    int startCoord, numTracks, step;
+    track_grid->getGridPatternX(0, startCoord, numTracks, step);
+    logger->report("results: startCoord {}, numTracks {}, step {}", startCoord, numTracks, step);
     logger->report("attempt to get gridx");
     std::vector<int> coordinate_grid;
     track_grid->getGridX(coordinate_grid);
