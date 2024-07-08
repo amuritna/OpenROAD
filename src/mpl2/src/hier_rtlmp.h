@@ -144,7 +144,15 @@ class HierRTLMP
   using IOSpans = std::map<Boundary, std::pair<float, float>>;
 
   // General Hier-RTLMP flow functions
+
+  /// Check whether design has unfixed macros,
+  /// run multilevel autoclustering and coarse shaping,
+  /// then hierarchical macro placement, then push
+  /// macros to core boundaries, update macros on database,
+  /// correct orientation, commit placement to database,
+  /// and write placement to file
   void initMacroPlacer();
+
   void computeMetricsForModules(float core_area);
   void reportLogicalHierarchyInformation(float core_area,
                                          float util,
@@ -177,10 +185,20 @@ class HierRTLMP
   float computeMicronArea(odb::dbInst* inst);
   void setClusterMetrics(Cluster* cluster);
   void calculateConnection();
+
+  /// Retrieve macro dbInst objects from module, then corresponding
+  /// dbMaster objects, then check for dbMaster objects of type block
   void getHardMacros(odb::dbModule* module,
                      std::vector<HardMacro*>& hard_macros);
+
+  /// Retrieve dbInst objects previously found by getHardMacros,
+  /// retrieve real (Dbu) x y values, orientation, and location.
+  /// Set macro instance's placement status as dbPlacementStatus::PLACED.
   void updateMacrosOnDb();
   void updateMacroOnDb(const HardMacro* hard_macro);
+
+  /// Snap instances to grid using Snapper class,
+  /// then set placement status to dbPlacementStatus::LOCKED.
   void commitMacroPlacementToDb();
   void clear();
 
@@ -507,6 +525,9 @@ class Pusher
          odb::dbBlock* block,
          const std::map<Boundary, Rect>& boundary_to_io_blockage);
 
+  // case 1: cluster type is HardMacroCluster -> do nothing
+  // case 2: design has a single centralized macro array -> do nothing
+  // case 3: macros need to be pushed to boundaries
   void pushMacrosToCoreBoundaries();
 
  private:
