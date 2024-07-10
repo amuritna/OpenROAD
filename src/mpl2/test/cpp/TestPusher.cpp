@@ -19,7 +19,7 @@ class Mpl2PusherTest : public ::testing::Test
                                         &odb::dbDatabase::destroy);
     chip_ = OdbUniquePtr<odb::dbChip>(odb::dbChip::create(db_.get()),
                                       &odb::dbChip::destroy);
-    block_
+    block
         = OdbUniquePtr<odb::dbBlock>(chip_->getBlock(), &odb::dbBlock::destroy);
   }
 
@@ -55,19 +55,19 @@ TEST_F(Mpl2PusherTest, ConstructPusherHardMacro)
   odb::dbMaster* master_ = createSimpleMaster(
       db_->findLib("lib"), "simple_master", 1000, 1000, odb::dbMasterType::CORE);
 
-  odb::dbBlock* block_ = odb::dbBlock::create(db_->getChip(), "simple_block");
-  block_->setDieArea(odb::Rect(0, 0, 1000, 1000));
+  odb::dbBlock* block = odb::dbBlock::create(db_->getChip(), "simple_block");
+  block->setDieArea(odb::Rect(0, 0, 1000, 1000));
 
-  odb::dbInst* inst1 = odb::dbInst::create(block_, master_, "leaf_macro");
+  odb::dbInst* inst1 = odb::dbInst::create(block, master_, "leaf_macro");
   
   // Create cluster of type HardMacroCluster, and add one instance
-  Cluster* cluster_ = new Cluster(0, std::string("hard_macro_cluster"), logger_);
-  cluster_->setClusterType(HardMacroCluster);
-  cluster_->addLeafMacro(inst1); 
+  Cluster* cluster = new Cluster(0, std::string("hard_macro_cluster"), logger_);
+  cluster->setClusterType(HardMacroCluster);
+  cluster->addLeafMacro(inst1); 
 
   // Construct Pusher object, indirectly run Pusher::SetIOBlockages
   std::map<Boundary, Rect> boundary_to_io_blockage_;
-  Pusher pusher(logger_, cluster_, block_, boundary_to_io_blockage_);
+  Pusher pusher(logger_, cluster, block, boundary_to_io_blockage_);
   
   // In hier_rtlmp.cpp the io blockages would have been retrieved by
   // setIOClustersBlockages (-> computeIOSpans, computeIOBlockagesDepth)
@@ -99,40 +99,40 @@ TEST_F(Mpl2PusherTest, ConstructPusherStdCell)
   odb::dbMaster* master_ = createSimpleMaster(
       db_->findLib("lib"), "simple_master", 1000, 1000, odb::dbMasterType::CORE);
 
-  odb::dbBlock* block_ = odb::dbBlock::create(db_->getChip(), "simple_block");
-  block_->setDieArea(odb::Rect(0, 0, 1000, 1000));
+  odb::dbBlock* block = odb::dbBlock::create(db_->getChip(), "simple_block");
+  block->setDieArea(odb::Rect(0, 0, 1000, 1000));
 
-  odb::dbInst::create(block_, master_, "leaf_std_cell1");
-  odb::dbInst::create(block_, master_, "leaf_std_cell2");
-  odb::dbInst::create(block_, master_, "leaf_std_cell3");
+  odb::dbInst::create(block, master_, "leaf_std_cell1");
+  odb::dbInst::create(block, master_, "leaf_std_cell2");
+  odb::dbInst::create(block, master_, "leaf_std_cell3");
 
-  Cluster* cluster_ = new Cluster(0, std::string("stdcell_cluster"), logger_);
-  cluster_->setClusterType(StdCellCluster);
-  cluster_->addDbModule(block_->getTopModule());
+  Cluster* cluster = new Cluster(0, std::string("stdcell_cluster"), logger_);
+  cluster->setClusterType(StdCellCluster);
+  cluster->addDbModule(block->getTopModule());
   
-  Metrics* metrics_ = new Metrics(0, 0, 0.0, 0.0);
-  for (auto inst : block_->getInsts()) {
+  Metrics* metrics = new Metrics(0, 0, 0.0, 0.0);
+  for (auto inst : block->getInsts()) {
 
-    const float inst_width = block_->dbuToMicrons(
+    const float inst_width = block->dbuToMicrons(
         inst->getBBox()->getBox().dx());
-    const float inst_height = block_->dbuToMicrons(
+    const float inst_height = block->dbuToMicrons(
         inst->getBBox()->getBox().dy());
     
-    cluster_->addLeafStdCell(inst);
-    metrics_->addMetrics(Metrics(1, 0, inst_width * inst_height, 0.0));
+    cluster->addLeafStdCell(inst);
+    metrics->addMetrics(Metrics(1, 0, inst_width * inst_height, 0.0));
   }
 
-  cluster_->setMetrics(Metrics(
-      metrics_->getNumStdCell(),
-      metrics_->getNumMacro(),
-      metrics_->getStdCellArea(), 
-      metrics_->getMacroArea()
+  cluster->setMetrics(Metrics(
+      metrics->getNumStdCell(),
+      metrics->getNumMacro(),
+      metrics->getStdCellArea(), 
+      metrics->getMacroArea()
   ));
 
   std::map<Boundary, Rect> boundary_to_io_blockage_;
 
   // Construct Pusher object, indirectly run Pusher::SetIOBlockages
-  Pusher pusher(logger_, cluster_, block_, boundary_to_io_blockage_);
+  Pusher pusher(logger_, cluster, block, boundary_to_io_blockage_);
   
   // In hier_rtlmp.cpp the io blockages would have been retrieved by
   // setIOClustersBlockages (-> computeIOSpans, computeIOBlockagesDepth)
