@@ -65,17 +65,26 @@ TEST_F(Mpl2PusherTest, ConstructPusherHardMacro)
   cluster->setClusterType(HardMacroCluster);
   cluster->addLeafMacro(inst1); 
 
-  // Construct Pusher object, indirectly run Pusher::SetIOBlockages
-  std::map<Boundary, Rect> boundary_to_io_blockage_;
-  Pusher pusher(logger_, cluster, block, boundary_to_io_blockage_);
-  
   // In hier_rtlmp.cpp the io blockages would have been retrieved by
   // setIOClustersBlockages (-> computeIOSpans, computeIOBlockagesDepth)
   //
   // In this case, the following results would be received:
   // io_spans[L, T, R, B].first = 1.0
   // io_spans[L, T, R, B].second = 0.0
-  //
+  std::map<Boundary, std::pair<float, float>> io_spans;
+  io_spans[L].first = 1.0;
+  io_spans[L].second = 0.0;
+  io_spans[T].first = 1.0;
+  io_spans[T].second = 0.0;
+  io_spans[R].first = 1.0;
+  io_spans[R].second = 0.0;
+  io_spans[B].first = 1.0;
+  io_spans[B].second = 0.0;
+
+  // Construct Pusher object, indirectly run Pusher::SetIOBlockages
+  std::map<Boundary, Rect> boundary_to_io_blockage_;
+  Pusher pusher(logger_, cluster, block, boundary_to_io_blockage_);
+  
   // Left, top, right, and bottom blockages are computed the second
   // part of each io_span is bigger than the first part, however 
   // in this case this is always untrue (always first > second)
@@ -129,25 +138,51 @@ TEST_F(Mpl2PusherTest, ConstructPusherStdCell)
       metrics->getMacroArea()
   ));
 
-  std::map<Boundary, Rect> boundary_to_io_blockage_;
-
-  // Construct Pusher object, indirectly run Pusher::SetIOBlockages
-  Pusher pusher(logger_, cluster, block, boundary_to_io_blockage_);
-  
   // In hier_rtlmp.cpp the io blockages would have been retrieved by
   // setIOClustersBlockages (-> computeIOSpans, computeIOBlockagesDepth)
   //
   // In this case, the following results would be received:
   // io_spans[L, T, R, B].first = 1.0
   // io_spans[L, T, R, B].second = 0.0
-  //
+  std::map<Boundary, std::pair<float, float>> io_spans;
+  io_spans[L].first = 1.0;
+  io_spans[L].second = 0.0;
+  io_spans[T].first = 1.0;
+  io_spans[T].second = 0.0;
+  io_spans[R].first = 1.0;
+  io_spans[R].second = 0.0;
+  io_spans[B].first = 1.0;
+  io_spans[B].second = 0.0;
+
+  // Construct Pusher object, indirectly run Pusher::SetIOBlockages
+  std::map<Boundary, Rect> boundary_to_io_blockage_;
+  Pusher pusher(logger_, cluster, block, boundary_to_io_blockage_);
+  
   // Left, top, right, and bottom blockages are computed the second
   // part of each io_span is bigger than the first part, however 
   // in this case this is always untrue (always first > second)
   // so boundary_to_io_blockage_.size() will still be empty at the end.
-
   EXPECT_TRUE(boundary_to_io_blockage_.empty());
 
 }  // ConstructPusherStdCell
+
+TEST_F(Mpl2PusherTest, ConstructPusherMixed)
+{
+  // Test whether a Cluster of type StdCellCluster can be created
+  // and then used to construct a Pusher object, and then whether the 
+  // boundary_to_io_blockage_ created during construction has the expected
+  // values.
+
+  utl::Logger* logger_ = new utl::Logger();
+  odb::dbDatabase* db_ = createSimpleDB();
+  db_->setLogger(logger_);
+
+  odb::dbMaster* master_ = createSimpleMaster(
+      db_->findLib("lib"), "simple_master", 1000, 1000, odb::dbMasterType::CORE);
+
+  odb::dbBlock* block = odb::dbBlock::create(db_->getChip(), "simple_block");
+  block->setDieArea(odb::Rect(0, 0, 1000, 1000));
+
+}  // ConstructPusherMixed
 
 }  // namespace mpl2
