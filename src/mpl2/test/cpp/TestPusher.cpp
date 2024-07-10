@@ -36,7 +36,7 @@ class Mpl2PusherTest : public ::testing::Test
 // There are several cases based on the cluster type (see mpl2/object.h):
 // 1. HardMacroCluster (ConstructPusherHardMacro)
 //     -> Cluster only has leaf_macros_ 
-// 2. StdCellCluster   (ConstructPusherStdCell) (in-progress)
+// 2. StdCellCluster   (ConstructPusherStdCell)
 //     -> Cluster only has leaf_std_cells_ and dbModules_
 // 3. MixedCluster     (ConstructPusherMixed) (in-progress)
 //     -> Cluster has both std cells and hard macros
@@ -109,9 +109,6 @@ TEST_F(Mpl2PusherTest, ConstructPusherStdCell)
   Cluster* cluster_ = new Cluster(0, std::string("stdcell_cluster"), logger_);
   cluster_->setClusterType(StdCellCluster);
   cluster_->addDbModule(block_->getTopModule());
-
-  // add declared instances as leaf std cells to cluster
-  // and compute metrics alongside
   
   Metrics* metrics_ = new Metrics(0, 0, 0.0, 0.0);
   for (auto inst : block_->getInsts()) {
@@ -123,7 +120,6 @@ TEST_F(Mpl2PusherTest, ConstructPusherStdCell)
     
     cluster_->addLeafStdCell(inst);
     metrics_->addMetrics(Metrics(1, 0, inst_width * inst_height, 0.0));
-
   }
 
   cluster_->setMetrics(Metrics(
@@ -133,12 +129,24 @@ TEST_F(Mpl2PusherTest, ConstructPusherStdCell)
       metrics_->getMacroArea()
   ));
 
-  cluster_->printBasicInformation(logger_);
-
   std::map<Boundary, Rect> boundary_to_io_blockage_;
-  Pusher pusher(logger_, cluster_, block_, boundary_to_io_blockage_);
 
-  logger_->report("area: {}", cluster_->getArea());
+  // Construct Pusher object, indirectly run Pusher::SetIOBlockages
+  Pusher pusher(logger_, cluster_, block_, boundary_to_io_blockage_);
+  
+  // In hier_rtlmp.cpp the io blockages would have been retrieved by
+  // setIOClustersBlockages (-> computeIOSpans, computeIOBlockagesDepth)
+  //
+  // In this case, the following results would be received:
+  // io_spans[L, T, R, B].first = 1.0
+  // io_spans[L, T, R, B].second = 0.0
+  //
+  // Left, top, right, and bottom blockages are computed the second
+  // part of each io_span is bigger than the first part, however 
+  // in this case this is always untrue (always first > second)
+  // so boundary_to_io_blockage_.size() will still be empty at the end.
+
+  EXPECT_TRUE(boundary_to_io_blockage_.empty());
 
 }  // ConstructPusherStdCell
 
