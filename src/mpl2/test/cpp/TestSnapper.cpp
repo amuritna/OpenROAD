@@ -44,7 +44,8 @@ TEST_F(Mpl2SnapperTest, CanSetMacroForEmptyInstances)
                                              "simple_master",
                                              1000,
                                              1000,
-                                             odb::dbMasterType::CORE);
+                                             odb::dbMasterType::CORE,
+                                             "L1");
 
   odb::dbBlock* block = odb::dbBlock::create(db_->getChip(), "simple_block");
   block->setDieArea(odb::Rect(0, 0, 1000, 1000));
@@ -80,23 +81,20 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
   odb::dbBlock* block = odb::dbBlock::create(db_->getChip(), "simple_block");
   block->setDieArea(odb::Rect(0, 0, 1000, 1000));
 
-  odb::dbTrackGrid* track1
+  odb::dbTrackGrid* track
       = odb::dbTrackGrid::create(block, db_->getTech()->findLayer("L1"));
-  odb::dbTrackGrid* track2
-      = odb::dbTrackGrid::create(block, db_->getTech()->findLayer("L2"));
 
   odb::dbGCellGrid::create(block);
-  track1->addGridPatternX(0, 50, 20);
-  track1->addGridPatternY(0, 50, 20);
-  track2->addGridPatternX(0, 50, 20);
-  track2->addGridPatternY(0, 50, 20);
+  track->addGridPatternX(0, 50, 20);
+  track->addGridPatternY(0, 50, 20);
   db_->getTech()->setManufacturingGrid(5);
 
   odb::dbMaster* master = createSimpleMaster(db_->findLib("lib"),
                                              "simple_master",
                                              1000,
                                              1000,
-                                             odb::dbMasterType::BLOCK);
+                                             odb::dbMasterType::BLOCK,
+                                             "L1");
 
   odb::dbInst* inst = odb::dbInst::create(block, master, "macro1");
 
@@ -125,31 +123,37 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
 
   inst->setOrigin(511, 540);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 510);
   EXPECT_TRUE(inst->getOrigin().y() == 515);
 
   inst->setOrigin(514, 559);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 510);
   EXPECT_TRUE(inst->getOrigin().y() == 515);
 
   inst->setOrigin(516, 560);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 515);
   EXPECT_TRUE(inst->getOrigin().y() == 535);
 
   inst->setOrigin(519, 579);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 515);
   EXPECT_TRUE(inst->getOrigin().y() == 535);
 
   // Now, we want to test for when the layer
   // has a "vertical" direction preference.
+  odb::dbInst::destroy(inst);
+  odb::dbMaster::destroy(master);
+  odb::dbMaster* master2 = createSimpleMaster(db_->findLib("lib"),
+                                             "simple_master",
+                                             1000,
+                                             1000,
+                                             odb::dbMasterType::CORE,
+                                             "L2");
+
   db_->getTech()->findLayer("L2")->setDirection(odb::dbTechLayerDir::VERTICAL);
+  odb::dbInst* inst2 = odb::dbInst::create(block, master2, "macro2");
 
   // Considering the grid pattern configuration (0 20 40 ... 980)
   // manufacturing grid size (5), and direction preference (horizontal):
@@ -160,25 +164,21 @@ TEST_F(Mpl2SnapperTest, CanSnapMacros)
 
   inst->setOrigin(540, 511);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 515);
   EXPECT_TRUE(inst->getOrigin().y() == 510);
 
   inst->setOrigin(559, 514);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 515);
   EXPECT_TRUE(inst->getOrigin().y() == 510);
 
   inst->setOrigin(560, 516);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 535);
   EXPECT_TRUE(inst->getOrigin().y() == 515);
 
   inst->setOrigin(579, 519);
   snapper.snapMacro();
-  logger->report("{} {}", inst->getOrigin().x(), inst->getOrigin().y());
   EXPECT_TRUE(inst->getOrigin().x() == 535);
   EXPECT_TRUE(inst->getOrigin().y() == 515);
 
