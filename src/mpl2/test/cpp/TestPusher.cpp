@@ -73,8 +73,8 @@ TEST_F(Mpl2PusherTest, ConstructPusherHardMacro)
       Metrics(0,
               1,
               0.0,
-              block->dbuToMicrons(inst->getBBox()->getBox().dx())
-                  * block->dbuToMicrons(inst->getBBox()->getBox().dy())));
+              block->dbuToMicrons(inst1->getBBox()->getBox().dx())
+                  * block->dbuToMicrons(inst1->getBBox()->getBox().dy())));
 
   cluster->setMetrics(Metrics(metrics->getNumStdCell(),
                               metrics->getNumMacro(),
@@ -90,7 +90,6 @@ TEST_F(Mpl2PusherTest, ConstructPusherHardMacro)
   boundary_to_io_blockage[R] = Rect(4, 5, 6, 7);
 
   // Construct Pusher object, indirectly run Pusher::SetIOBlockages
-  std::map<Boundary, Rect> boundary_to_io_blockage_;
   Pusher pusher(logger, cluster, block, boundary_to_io_blockage);
 
 }  // ConstructPusherHardMacro
@@ -147,7 +146,6 @@ TEST_F(Mpl2PusherTest, ConstructPusherStdCell)
   boundary_to_io_blockage[R] = Rect(4, 5, 6, 7);
 
   // Construct Pusher object, indirectly run Pusher::SetIOBlockages
-  std::map<Boundary, Rect> boundary_to_io_blockage_;
   Pusher pusher(logger, cluster, block, boundary_to_io_blockage);
 
 }  // ConstructPusherStdCell
@@ -184,15 +182,15 @@ TEST_F(Mpl2PusherTest, ConstructPusherMixed)
       Metrics(0,
               1,
               0.0,
-              block->dbuToMicrons(inst->getBBox()->getBox().dx())
-                  * block->dbuToMicrons(inst->getBBox()->getBox().dy())));
+              block->dbuToMicrons(i1->getBBox()->getBox().dx())
+                  * block->dbuToMicrons(i1->getBBox()->getBox().dy())));
 
   cluster->addLeafStdCell(i2);
   metrics->addMetrics(
       Metrics(1,
               0,
-              block->dbuToMicrons(inst->getBBox()->getBox().dx())
-                  * block->dbuToMicrons(inst->getBBox()->getBox().dy()),
+              block->dbuToMicrons(i2->getBBox()->getBox().dx())
+                  * block->dbuToMicrons(i2->getBBox()->getBox().dy()),
               0.0));
 
   cluster->setMetrics(Metrics(metrics->getNumStdCell(),
@@ -209,9 +207,48 @@ TEST_F(Mpl2PusherTest, ConstructPusherMixed)
   boundary_to_io_blockage[R] = Rect(4, 5, 6, 7);
 
   // Construct Pusher object, indirectly run Pusher::SetIOBlockages
-  std::map<Boundary, Rect> boundary_to_io_blockage_;
   Pusher pusher(logger, cluster, block, boundary_to_io_blockage);
 
 }  // ConstructPusherMixed
+
+TEST_F(Mpl2PusherTest, PushHardMacroCluster)
+{
+
+  utl::Logger* logger = new utl::Logger();
+  odb::dbDatabase* db_ = createSimpleDB();
+  db_->setLogger(logger);
+
+  odb::dbMaster* master_ = createSimpleMaster(db_->findLib("lib"),
+                                              "simple_master",
+                                              1000,
+                                              1000,
+                                              odb::dbMasterType::CORE,
+                                              db_->getTech()->findLayer("L1"));
+
+  odb::dbBlock* block = odb::dbBlock::create(db_->getChip(), "simple_block");
+  block->setDieArea(odb::Rect(0, 0, 1000, 1000));
+
+  odb::dbInst* inst1 = odb::dbInst::create(block, master_, "leaf_macro");
+
+  // Create cluster of type HardMacroCluster, and add one instance
+  Cluster* cluster = new Cluster(0, std::string("hard_macro_cluster"), logger);
+  cluster->setClusterType(HardMacroCluster);
+  cluster->addLeafMacro(inst1);
+
+  Metrics* metrics = new Metrics(0, 0, 0.0, 0.0);
+  metrics->addMetrics(
+      Metrics(0,
+              1,
+              0.0,
+              block->dbuToMicrons(inst1->getBBox()->getBox().dx())
+                  * block->dbuToMicrons(inst1->getBBox()->getBox().dy())));
+
+  cluster->setMetrics(Metrics(metrics->getNumStdCell(),
+                              metrics->getNumMacro(),
+                              metrics->getStdCellArea(),
+                              metrics->getMacroArea()));
+
+  
+} // PushHardMacroCluster
 
 }  // namespace mpl2
